@@ -1,15 +1,13 @@
 import streamlit as st
 import pandas as pd
 from PIL import Image
-import graphistry
 
 from src.utils import (
-    search_to_df,
+    search_text_to_graphistry,
     get_graphistry_from_search,
     get_graphistry_from_milieu_search,
     setup_logger,
 )
-
 
 logger = setup_logger(__name__)
 
@@ -53,15 +51,7 @@ def milieu_search(search_term, both=False):
 
 @st.cache
 def text_search(search_term):
-    res = pd.concat(
-        [
-            search_to_df(search_term, "Summary", ndf),
-            search_to_df(search_term, "Blurb", ndf),
-        ],
-        axis=0,
-    )
-    tdf = edf[edf.to_node.isin(res.Node)]
-    g = graphistry.edges(tdf, src, dst).nodes(res, node_col)
+    g = search_text_to_graphistry(search_term, src, dst, node_col, edf, ndf)
     return g
 
 

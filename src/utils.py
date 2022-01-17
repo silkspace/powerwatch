@@ -1,7 +1,7 @@
 import graphistry
 import pandas as pd
 import logging
-import os
+import streamlit as st
 
 
 def setup_logger(name):
@@ -18,8 +18,8 @@ graphistry.register(
     api=3,
     protocol="https",
     server="hub.graphistry.com",
-    username=os.environ["USERNAME"],
-    password=os.environ["GRAPHISTRY_PASSWORD"],
+    username=st.secrets["USERNAME"],
+    password=st.secrets["GRAPHISTRY_PASSWORD"],
 )
 
 # #################################################################################################
@@ -48,6 +48,17 @@ def search_to_df(word, col, df):
         return df
     return res
 
+def search_text_to_graphistry(search_term, src, dst, node_col, edf, ndf):
+    res = pd.concat(
+        [
+            search_to_df(search_term, "Summary", ndf),
+            search_to_df(search_term, "Blurb", ndf),
+        ],
+        axis=0,
+    )
+    tdf = edf[edf.to_node.isin(res.Node)]
+    g = graphistry.edges(tdf, src, dst).nodes(res, node_col)
+    return g
 
 # def df_to_graph(src, dst, node_col, edf, df):
 #     g = graphistry.edges(edf, src, dst).nodes(df, node_col)
