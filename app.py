@@ -86,12 +86,12 @@ search_term = st.sidebar.text_input("", entity, key="search")
 # get the graph
 if search_summary_and_blurb:
     g = text_search(search_term)
-    st.write(g._nodes)
 elif local_or_milieu:
     g = simple_search(search_term)
 else:
     g = milieu_search(search_term)
 
+st.write(g._nodes)
 display_graph(g)
 
 # logo
