@@ -1,4 +1,4 @@
-# powerwatch
+# PowerWatch
 Interactive research tool to track people, relationships and entities at the top of corporate and political power.
 
 [powerwatch app](https://share.streamlit.io/silkspace/powerwatch/cloud/app.py)
