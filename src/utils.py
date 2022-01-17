@@ -3,6 +3,7 @@ import pandas as pd
 import logging
 import os
 
+
 def setup_logger(name):
     logger = logging.getLogger(name)
     FORMAT = "[%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s"
@@ -13,13 +14,20 @@ def setup_logger(name):
 
 logger = setup_logger(__name__)
 
-graphistry.register(api=3, protocol="https", server="hub.graphistry.com", username=os.environ['USERNAME'], password=os.environ['GRAPHISTRY_PASSWORD'])
+graphistry.register(
+    api=3,
+    protocol="https",
+    server="hub.graphistry.com",
+    username=os.environ["USERNAME"],
+    password=os.environ["GRAPHISTRY_PASSWORD"],
+)
 
 # #################################################################################################
 #
 #   Finding subgraphs within a large graph.
 #
 # #################################################################################################
+
 
 def search_to_df(word, col, df):
     """
@@ -40,6 +48,7 @@ def search_to_df(word, col, df):
         return df
     return res
 
+
 # def df_to_graph(src, dst, node_col, edf, df):
 #     g = graphistry.edges(edf, src, dst).nodes(df, node_col)
 #     return g
@@ -47,6 +56,7 @@ def search_to_df(word, col, df):
 # def search_to_graphistry(search_term, search_col, src, dst, node_col, edf, ndf):
 #     df = search_to_df(search_term, search_col, ndf)
 #     return df_to_graph(src, dst, node_col, edf, df)
+
 
 def get_nearest(search_term, src, dst, edf):
     """
