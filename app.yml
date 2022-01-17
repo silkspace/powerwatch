@@ -1,0 +1,3 @@
+env:
+  GRAPHISTRY_PASSWORD: ${{ secrets.GRAPHISTRY_PASSWORD }}
+  USERNAME: ${{ secrets.USERNAME }}
