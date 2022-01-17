@@ -1,6 +1,7 @@
 import graphistry
 import pandas as pd
 import logging
+import os
 
 def setup_logger(name):
     logger = logging.getLogger(name)
@@ -12,7 +13,7 @@ def setup_logger(name):
 
 logger = setup_logger(__name__)
 
-graphistry.register(api=3, protocol="https", server="hub.graphistry.com", username="silkspace", password="yqQg02&N")
+graphistry.register(api=3, protocol="https", server="hub.graphistry.com", username=os.environ['USERNAME'], password=os.environ['GRAPHISTRY_PASSWORD'])
 
 # #################################################################################################
 #
