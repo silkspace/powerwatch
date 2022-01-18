@@ -3,4 +3,8 @@ Interactive research tool to track people, relationships and entities at the top
 
 [powerwatch app](https://share.streamlit.io/silkspace/powerwatch/cloud/app.py)
 
-<img width="1677" alt="powerwatch demo instructions" src="https://user-images.githubusercontent.com/711535/149823791-b4bd4f4d-7b22-4ded-b841-a64a35e4350a.png">
+Follow Steps 1, 2, 3 below for best experience. 
+
+<img width="1667" alt="PowerWatch Demo" src="https://user-images.githubusercontent.com/711535/150001600-70145b3a-fd5d-4563-9345-f0cc1cfe8bd8.png">
+
+Thanks to www.littlesis.org for the data. Feedback welcome. 
