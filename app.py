@@ -1,26 +1,33 @@
 import streamlit as st
 import pandas as pd
 from PIL import Image
+from urllib.parse import urljoin, quote
 
 from src.utils import (
     search_text_to_graphistry,
     get_graphistry_from_search,
     get_graphistry_from_milieu_search,
-    setup_logger,
+    setup_logger, contribution
+
 )
 
 logger = setup_logger(__name__)
 
 src, dst, node_col = "to_node", "from_node", "Node"
+good_node_cols = ['Node', 'link', 'Blurb', 'Summary', 'Website']
+good_node_tags = ['Types', 'Revenue', 'Aliases', 'pagerank']
 
-
-@st.cache
-def get_data(dummy_variable):
+@st.cache(suppress_st_warning=True)
+def get_data(dummy_variable=True):
     logger.info("Loading Data")
     edges = pd.read_csv("data/edges.csv", index_col=0)
     edges = edges.fillna("")
+    st.write(f'Number of total relationships {len(edges):,}')
+    
     nodes = pd.read_csv("data/nodes.csv", index_col=0)
     nodes = nodes.fillna("")
+    st.write(f'Number of total entities {len(nodes):,}')
+
     return edges, nodes
 
 
@@ -29,11 +36,13 @@ def icon(icon_name):
 
 
 def display_graph(g):
-    url = g.plot(render=False)
-    st.markdown(
-        f'<iframe width=1000 height=800 src="{url}"></iframe>', unsafe_allow_html=True
-    )
-
+    if len(g._nodes)>0:
+        url = g.plot(render=False)
+        st.markdown(
+            f'<iframe width=1000 height=800 src="{url}"></iframe>', unsafe_allow_html=True
+        )
+    else:
+        st.write('No results found, try another search term')
 
 @st.cache
 def simple_search(search_term):
@@ -55,36 +64,100 @@ def text_search(search_term):
     return g
 
 
-edf, ndf = get_data(True)
+def tag_boxes(search: str, tags: list) -> str:
+    """ HTML scripts to render tag boxes.
+    st.write(tag_boxes(search, results['sorted_tags'][:10], ''),
+                 unsafe_allow_html=True)
+    """
+    html = ''
+    search = quote(search)
+    for tag in tags:
+            html += f"""
+            <a id="tags" href="?search={search}&tags={tag}">
+                {tag.replace('-', ' ')}
+            </a>
+            """
+    html += '<br><br>'
+    return html
 
+def pretty_pandas(i, node, url, blurb, summary):
+    littlesis = 'https://littlesis.org/'
+    url = urljoin(littlesis, url)
+    res = f"""
+        <div style="font-size:120%;">
+            {i + 1}.
+            <a href="{url}">
+                {node}
+            </a>
+        </div>
+        <div style="font-size:95%;">
+            <div style="float:left;font-style:italic;">
+                {blurb} ·&nbsp;
+            </div>
+            <div style="float:left;font-style:normal;">
+                {summary} ·&nbsp;
+            </div>
+        </div>
+    """
+    return res
+
+def print_results(search, ndf, topN=100):
+    tdf = ndf.sort_values(by='pagerank', ascending=False)
+    for i, (_, row) in enumerate(tdf.iterrows()):
+        if i>=topN:
+            break
+        st.write(pretty_pandas(i, row.Node, row.link, row.Blurb, row.Summary), unsafe_allow_html=True)
+        # tags = row.Types.split(',')
+        # tags = [t.strip() for t in tags]
+        # st.write(tag_boxes(search, tags), unsafe_allow_html=True)
+        
+        
+etdf, ndf = get_data(True)
+edf = etdf
 # search bar
 st.sidebar.header("Influence & Power Networks")
 st.sidebar.subheader("Search Network")
 
-rand = st.sidebar.checkbox("Get Random")
+drop_contributors = st.sidebar.checkbox("Drop Contributors", value=True)
+
+if drop_contributors:
+    edf = etdf[etdf.relationship != contribution]
+    #st.write(f'Number of total relationships after removing "{contribution}" data is {len(edf):,}')
+
+rand = st.sidebar.checkbox("Get Random Entity")
 if rand:
     entity_options = ndf.Node
     entity = entity_options.sample(1).values[0]
 else:
     entity = "BlackRock"
 
-local_or_milieu = st.sidebar.checkbox("Local or Milieu Search")
-search_summary_and_blurb = st.sidebar.checkbox("Search Text", value=~local_or_milieu)
+options = ['Search Text', 'Milieu', 'Nearest']
+option = st.sidebar.selectbox('Search Type', options)
+
+if rand: # for random entity need Milieu or Local, since they search Nodes
+    option = options[1]
 
 search_term = st.sidebar.text_input("", entity, key="search")
 
 # get the graph
-if search_summary_and_blurb:
+if option==options[0]:
+    st.sidebar.write(f'Searching Summary and Blurb for {search_term}')
     g = text_search(search_term)
-elif local_or_milieu:
-    g = simple_search(search_term)
-else:
+if option==options[1]:
+    st.sidebar.write(f'Searching node entities for milieu graph of {search_term}')
     g = milieu_search(search_term)
-
-st.write(g._nodes)
+if option==options[2]:
+    st.sidebar.write(f'Searching node entities for nearest connections to {search_term}')
+    g = simple_search(search_term)
+    
+# The main frontend calls
+this_df = g._nodes
 display_graph(g)
+print_results(search_term, this_df)
 
 # logo
 st.sidebar.write("-" * 40)
 image = Image.open("./tensorml.png")
 st.sidebar.image(image, use_column_width=True)
+# st.markdown("[[TensorML](./tensorml.png)](http://www.tensorML.com)")
+
