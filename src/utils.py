@@ -35,7 +35,8 @@ src, dst, node_col = "to_node", "from_node", "Node"
 # #################################################################################################
 
 
-contribution = 'contribution'
+contribution = "contribution"
+
 
 def get_count(x):
     x = x.strip()
@@ -44,14 +45,15 @@ def get_count(x):
         return x
     except:
         return 1
-    
+
+
 def count_contributions(x):
     if contribution in x:
         res = x.split(contribution)
-        if len(res)==1:
+        if len(res) == 1:
             return contribution, 1
-        if len(res)>1:
-            y = get_count(res[0]) # assumes the count is at the front
+        if len(res) > 1:
+            y = get_count(res[0])  # assumes the count is at the front
             return contribution, y
     else:
         return x, 0
@@ -62,39 +64,44 @@ def normalize_contributions(edf):
     rt = [k[0] for k in t.values]
     vt = [k[1] for k in t.values]
     cnt = Counter(rt)
-    print('Most Common Relationship Types')
-    print('-'*40)
+    print("Most Common Relationship Types")
+    print("-" * 40)
     for k, c in cnt.most_common(10):
-        print(f'{k}: {c:,} total')
-    edf['relationship'] = rt
-    edf['contribution_count'] = vt
+        print(f"{k}: {c:,} total")
+    edf["relationship"] = rt
+    edf["contribution_count"] = vt
 
-    print('\nMost Common Contribution Counts')
-    print('-'*40)
+    print("\nMost Common Contribution Counts")
+    print("-" * 40)
     for k, c in Counter(edf.contribution_count).most_common(10):
-        print(f'Number of Contributions {k}: {c:,} total')
+        print(f"Number of Contributions {k}: {c:,} total")
 
 
 def moneyify(money: str):
     from re import sub
     from decimal import Decimal
+
     try:
-        value = Decimal(sub(r'[^\d.]', '', money))
+        value = Decimal(sub(r"[^\d.]", "", money))
     except:
         return 0
     return value
 
+
 def get_total_value_contributions(edf):
     cdf = edf[edf.relationship == contribution]
-    amounts = cdf.metadata.str.split().apply(lambda x: x if len(x) == 0 else moneyify(x[0]))
-    edf['amount'] = amounts
-    edf['amount'] = edf.amount.fillna(0)
+    amounts = cdf.metadata.str.split().apply(
+        lambda x: x if len(x) == 0 else moneyify(x[0])
+    )
+    edf["amount"] = amounts
+    edf["amount"] = edf.amount.fillna(0)
     # take care of places where metadata was null, which maps to a []
     r = edf.amount.apply(lambda x: isinstance(x, list))
-    edf.loc[r, 'amount'] = -1 # send to unknown, here -1
-    
+    edf.loc[r, "amount"] = -1  # send to unknown, here -1
+
+
 def get_contributions_for_entity(entity, edf, both=False):
-    if both: # doesn't really make sense
+    if both:  # doesn't really make sense
         tdf = pd.concat(
             [
                 search_to_df(entity, "to_node", edf),
@@ -106,8 +113,8 @@ def get_contributions_for_entity(entity, edf, both=False):
         tdf = search_to_df(entity, "to_node", edf)
     total_contributions = tdf[tdf.relationship == contribution].amount.sum()
     return total_contributions
-    
-    
+
+
 # #################################################################################################
 #
 #   Finding subgraphs within a large graph.
@@ -134,6 +141,7 @@ def search_to_df(word, col, df):
         return df
     return res
 
+
 def search_text_to_graphistry(search_term, src, dst, node_col, edf, ndf):
     res = pd.concat(
         [
@@ -145,6 +153,7 @@ def search_text_to_graphistry(search_term, src, dst, node_col, edf, ndf):
     tdf = edf[edf.to_node.isin(res.Node)]
     g = graphistry.edges(tdf, src, dst).nodes(res, node_col)
     return g
+
 
 # def df_to_graph(src, dst, node_col, edf, df):
 #     g = graphistry.edges(edf, src, dst).nodes(df, node_col)
@@ -246,5 +255,5 @@ def get_graphistry_from_milieu_search(
     return g
 
 
-if __name__=='__main__':
+if __name__ == "__main__":
     pass
