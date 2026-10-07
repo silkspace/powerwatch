@@ -1,0 +1,27 @@
+name: CI
+
+on:
+  push:
+    branches: [main, cloud]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+      - name: Lint with Ruff
+        run: |
+          pip install ruff
+          ruff check --output-format=github .
+      - name: Check imports
+        run: |
+          python -c "import streamlit; import pandas; import graphistry; print('All imports OK')"
